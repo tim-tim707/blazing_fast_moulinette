@@ -6,6 +6,30 @@ use std::{
     process::Command,
 };
 
+use structopt::StructOpt;
+
+#[derive(Debug, StructOpt)]
+#[structopt(
+    name = "BFM: The Blazing Fast Moulinette",
+    about = "Tool for managing git and directory profiling of practicals, as well as running tests"
+)]
+struct Opt {
+    /// Toggle practical cloning (-g, --git)
+    #[structopt(short = "g", long = "git")]
+    clone: bool,
+
+    /// Toggle git commit message collection (-m, --messages)
+    #[structopt(short = "m", long = "messages")]
+    commit_messages: bool,
+
+    /// File Path to student list
+    #[structopt(name = "student_list_file", required = true)]
+    student_list_file: String,
+    /// Practical number, two digits
+    #[structopt(name = "practical_nb", required = true)]
+    practical_nb: String,
+}
+
 fn lines_from_file(filename: impl AsRef<Path>) -> Vec<String> {
     let file = File::open(filename).expect("No such file");
     let buffer = BufReader::new(file);
@@ -119,7 +143,8 @@ fn commit_messages(infos: &PracticalInfo) {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    /*
+        let args: Vec<String> = env::args().collect();
 
     if args.len() != 3 {
         panic!("Please provide the student list and then the number of the practical");
@@ -128,4 +153,11 @@ fn main() {
     let infos: PracticalInfo = PracticalInfo::create_practical_data(&args[1], &args[2]);
     clone_all(&infos);
     commit_messages(&infos);
+     */
+
+    let opt = Opt::from_args();
+    println!("{:?}", opt);
+
+    if opt.clone {}
+    if opt.commit_messages {}
 }
