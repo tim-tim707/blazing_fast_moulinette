@@ -48,7 +48,7 @@ fn clone_all(infos: &PracticalInfo) {
         ))
         .expect("Directory already exist");
 
-        Command::new("git")
+        let command_result = Command::new("git")
             .current_dir(&format!("{}/", infos.practical_path))
             .args([
                 "clone",
@@ -58,7 +58,22 @@ fn clone_all(infos: &PracticalInfo) {
                 ),
             ])
             .output()
-            .expect("Couldnt clone");
+            .expect("Error while cloning");
+
+        // status 128: DENIED by fallthru : never cloned
+        if command_result.status.code() == Some(128) {
+            let failed_clone_filename = &format!("{}/failed_clone.txt", infos.practical_path);
+            let mut failed_clone_file = OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open(failed_clone_filename)
+                .expect("Couldnt create failed clone file");
+            File::write_all(
+                &mut failed_clone_file,
+                format!("{}\n", student.login).as_bytes(),
+            )
+            .expect("Couldnt write in file");
+        }
 
         println!("{}/{}", i, infos.student_list.len());
     }
