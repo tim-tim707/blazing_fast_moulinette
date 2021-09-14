@@ -41,7 +41,7 @@ impl PracticalInfo {
 
 fn clone_all(infos: &PracticalInfo) {
     println!("Cloning...");
-    for student in &infos.student_list {
+    for (i, student) in infos.student_list.iter().enumerate() {
         create_dir_all(&format!(
             "{}/{}",
             infos.practical_path, student.practical_dir
@@ -49,10 +49,7 @@ fn clone_all(infos: &PracticalInfo) {
         .expect("Directory already exist");
 
         Command::new("git")
-            .current_dir(&format!(
-                "{}/{}",
-                infos.practical_path, student.practical_dir
-            ))
+            .current_dir(&format!("{}/", infos.practical_path))
             .args([
                 "clone",
                 &format!(
@@ -62,6 +59,8 @@ fn clone_all(infos: &PracticalInfo) {
             ])
             .output()
             .expect("Couldnt clone");
+
+        println!("{}/{}", i, infos.student_list.len());
     }
 
     println!("Cloning done");
