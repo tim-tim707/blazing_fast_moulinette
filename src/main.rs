@@ -1,5 +1,4 @@
 use std::{
-    env,
     fs::{create_dir_all, File, OpenOptions},
     io::{prelude::*, BufReader},
     path::Path,
@@ -22,12 +21,13 @@ struct Opt {
     #[structopt(short = "m", long = "messages")]
     commit_messages: bool,
 
-    /// File Path to student list
-    #[structopt(name = "student_list_file", required = true)]
-    student_list_file: String,
     /// Practical number, two digits
     #[structopt(name = "practical_nb", required = true)]
     practical_nb: String,
+
+    /// File Path to student list
+    #[structopt(name = "student_list_file", default_value = "")]
+    student_list_file: String,
 }
 
 fn lines_from_file(filename: impl AsRef<Path>) -> Vec<String> {
@@ -49,17 +49,38 @@ struct StudentInfo {
 }
 
 impl PracticalInfo {
-    fn create_practical_data(student_list: &String, practical_number: &String) -> PracticalInfo {
-        PracticalInfo {
+    fn create_practical_data(options: &Opt, practical_number: &String) -> PracticalInfo {
+        let mut student_list_path = "".to_string();
+
+        if !Path::new(&options.student_list_file).exists() {
+            if Path::new("students.txt").exists() {
+                println!("Found students.txt file");
+                student_list_path = "students.txt".to_string();
+            } else if Path::new("../students.txt").exists() {
+                println!("Found ../students.txt file");
+                student_list_path = "../students.txt".to_string();
+            } else {
+                if options.student_list_file == "" {
+                    panic!("Student list not found but required, please add this file to your directory or give its path as an argument");
+                } else {
+                    panic!("Invalid path: {}", options.student_list_file);
+                }
+            }
+        } else {
+        }
+
+        let infos = PracticalInfo {
             practical_path: format!("../TP{}", practical_number),
-            student_list: lines_from_file(student_list)
+            student_list: lines_from_file(student_list_path)
                 .iter()
                 .map(|login| StudentInfo {
                     login: login.to_string(),
                     practical_dir: format!("tp{}-{}", practical_number, login),
                 })
                 .collect(),
-        }
+        };
+
+        infos
     }
 }
 
@@ -143,21 +164,14 @@ fn commit_messages(infos: &PracticalInfo) {
 }
 
 fn main() {
-    /*
-        let args: Vec<String> = env::args().collect();
-
-    if args.len() != 3 {
-        panic!("Please provide the student list and then the number of the practical");
-    }
-
-    let infos: PracticalInfo = PracticalInfo::create_practical_data(&args[1], &args[2]);
-    clone_all(&infos);
-    commit_messages(&infos);
-     */
-
     let opt = Opt::from_args();
     println!("{:?}", opt);
+    let infos: PracticalInfo = PracticalInfo::create_practical_data(&opt, &opt.practical_nb);
 
-    if opt.clone {}
-    if opt.commit_messages {}
+    if opt.clone {
+        clone_all(&infos);
+    }
+    if opt.commit_messages {
+        commit_messages(&infos);
+    }
 }
